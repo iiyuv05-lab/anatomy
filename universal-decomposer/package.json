@@ -1,0 +1,1 @@
+{"name":"universal-decomposer-core","private":true,"type":"module","scripts":{"recover:apk":"tsx src/cli.ts recover-apk"},"devDependencies":{"@types/node":"^22.0.0","tsx":"^4.20.0","typescript":"^5.7.0"}}
