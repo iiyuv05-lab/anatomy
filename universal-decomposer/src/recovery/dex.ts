@@ -1,0 +1,6 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { basename, join, resolve } from 'node:path';
+const u32=(b:Uint8Array,o:number)=>(b[o]|b[o+1]<<8|b[o+2]<<16|b[o+3]<<24)>>>0;
+export interface DexFacts { file:string;version:string;strings:number;types:number;protos:number;fields:number;methods:number;classes:number; }
+export async function parseDex(path:string):Promise<DexFacts>{const b=new Uint8Array(await readFile(path));if(b.length<112||String.fromCharCode(...b.slice(0,4))!=='dex\n')throw new Error('Not a DEX file');const facts={file:basename(path),version:String.fromCharCode(...b.slice(4,7)),strings:u32(b,56),types:u32(b,64),protos:u32(b,72),fields:u32(b,80),methods:u32(b,88),classes:u32(b,96)};return facts;}
+export async function indexDexFiles(files:string[],outDir:string){const facts=[];for(const f of files)facts.push(await parseDex(resolve(f)));const graph={kind:'DEXGraph',dexFiles:facts.length,totals:{strings:facts.reduce((a,x)=>a+x.strings,0),types:facts.reduce((a,x)=>a+x.types,0),methods:facts.reduce((a,x)=>a+x.methods,0),classes:facts.reduce((a,x)=>a+x.classes,0)},files:facts};await writeFile(join(resolve(outDir),'dex-graph.json'),JSON.stringify(graph,null,2));return graph;}
