@@ -1,0 +1,4 @@
+import { readFile, writeFile } from 'node:fs/promises';
+import { join, resolve } from 'node:path';
+const matches=(text:string,re:RegExp)=>[...text.matchAll(re)].map(x=>x[1]).filter(Boolean);
+export async function indexAndroidManifest(decodedRoot:string){const root=resolve(decodedRoot),path=join(root,'AndroidManifest.xml'),text=await readFile(path,'utf8');const graph={packageName:text.match(/\bpackage="([^"]+)"/)?.[1]||null,permissions:matches(text,/uses-permission[^>]+android:name="([^"]+)"/g),activities:matches(text,/<activity[^>]+android:name="([^"]+)"/g),services:matches(text,/<service[^>]+android:name="([^"]+)"/g),receivers:matches(text,/<receiver[^>]+android:name="([^"]+)"/g),providers:matches(text,/<provider[^>]+android:name="([^"]+)"/g),deepLinks:matches(text,/<data[^>]+android:(?:scheme|host)="([^"]+)"/g)};await writeFile(join(root,'manifest-graph.json'),JSON.stringify(graph,null,2));return graph;}
